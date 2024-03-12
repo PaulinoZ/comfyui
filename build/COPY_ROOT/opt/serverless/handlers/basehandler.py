@@ -13,8 +13,12 @@ class BaseHandler:
     ENDPOINT_PROMPT="http://127.0.0.1:18188/prompt"
     ENDPOINT_QUEUE="http://127.0.0.1:18188/queue"
     ENDPOINT_HISTORY="http://127.0.0.1:18188/history"
-    INPUT_DIR=f"{os.environ.get('WORKSPACE')}/ComfyUI/input/"
-    OUTPUT_DIR=f"{os.environ.get('WORKSPACE')}/ComfyUI/output/"
+    # INPUT_DIR=f"{os.environ.get('WORKSPACE')}/ComfyUI/input/" # OLD
+    # OUTPUT_DIR=f"{os.environ.get('WORKSPACE')}/ComfyUI/output/"
+    INPUT_DIR=f"{os.environ.get('WORKSPACE')}ComfyUI/input/" # OWN
+    OUTPUT_DIR=f"{os.environ.get('WORKSPACE')}ComfyUI/output/"
+    print(f'os.environ.get("WORKSPACE"):  {os.environ.get("WORKSPACE")}')
+    print(f'Output dir:  {OUTPUT_DIR}')
     
     request_id = None
     comfyui_job_id = None
@@ -142,8 +146,12 @@ class BaseHandler:
     def get_result(self, job_id):
         result = requests.get(self.ENDPOINT_HISTORY).json()[self.comfyui_job_id]
 
+        print(f'Endpoing history:  {self.ENDPOINT_HISTORY}')
+
         prompt = result["prompt"]
         outputs = result["outputs"]
+
+        printf(f'Ouputs:  {outputs}')
 
         self.result = {
             "images": [],
@@ -151,12 +159,19 @@ class BaseHandler:
         }
         
         custom_output_dir = f"{self.OUTPUT_DIR}{self.request_id}"
+        print(f'Custom output dir:  {custom_output_dir}')
         os.makedirs(custom_output_dir, exist_ok = True)
         for item in outputs:
             if "images" in outputs[item]:
                 for image in outputs[item]["images"]:
-                    original_path = f"{self.OUTPUT_DIR}{image['subfolder']}/{image['filename']}"
+                    if "type" in image and image["type"] == "temp":
+                        continue
+                    #original_path = f"{self.OUTPUT_DIR}{image['subfolder']}/{image['filename']}" # OLD
+                    original_path = f"{self.OUTPUT_DIR}{image['subfolder']}{image['filename']}" # OWN
+
+                    print(f'Original path:  {original_path}')
                     new_path = f"{custom_output_dir}/{image['filename']}"
+                    print(f'New path:  {new_path}')
                     # Handle duplicated request where output file is not re-generated
                     if os.path.islink(original_path):
                         shutil.copyfile(os.path.realpath(original_path), new_path)
@@ -213,7 +228,7 @@ class BaseHandler:
                 data["extra_params"] = webhook_extra_params
             Network.invoke_webhook(webhook_url, data)
         else:
-            print("webhook_url is NOT valid!")    
+            print("webhook_url is NOT valid!")   
     
     def handle(self):
         self.comfyui_job_id = self.queue_job(30)
