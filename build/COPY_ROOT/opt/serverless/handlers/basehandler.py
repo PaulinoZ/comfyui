@@ -42,6 +42,7 @@ class BaseHandler:
                 self.prompt = {"prompt": json.load(f)}
         else:
             self.prompt = {"prompt": self.payload["workflow_json"]}
+            print(f'CUSTOM Prompt:  {self.prompt}')
           
     def get_value(self, key, default = None):
         if key not in self.payload and default == None:
@@ -151,7 +152,7 @@ class BaseHandler:
         prompt = result["prompt"]
         outputs = result["outputs"]
 
-        printf(f'Ouputs:  {outputs}')
+        print(f'Ouputs:  {outputs}')
 
         self.result = {
             "images": [],
@@ -169,21 +170,30 @@ class BaseHandler:
                     #original_path = f"{self.OUTPUT_DIR}{image['subfolder']}/{image['filename']}" # OLD
                     original_path = f"{self.OUTPUT_DIR}{image['subfolder']}{image['filename']}" # OWN
 
+                    print(f'Current path:  {os.getcwd()}')
+
+                    print(f'Output dir:  {os.listdir(self.OUTPUT_DIR)}')
+
+                    aux = f'{os.environ.get('WORKSPACE')}ComfyUI/'
+                    print(f'Output dir sin output:  {os.listdir(aux)}')
+                    
+
                     print(f'Original path:  {original_path}')
                     new_path = f"{custom_output_dir}/{image['filename']}"
                     print(f'New path:  {new_path}')
                     # Handle duplicated request where output file is not re-generated
-                    if os.path.islink(original_path):
-                        shutil.copyfile(os.path.realpath(original_path), new_path)
-                    else:
-                        os.rename(original_path, new_path)
-                        os.symlink(new_path, original_path)
+                    # if os.path.islink(original_path):
+                    #     shutil.copyfile(os.path.realpath(original_path), new_path)
+                    # else:
+                    #     os.rename(original_path, new_path)
+                    #     os.symlink(new_path, original_path)
+
                     key = f"{self.request_id}/{image['filename']}"
                     self.result["images"].append({
-                        "local_path": new_path,
+                        "local_path": original_path,
                         #"base64": self.image_to_base64(path),
                         # make this work first, then threads
-                        "url": self.s3utils.file_upload(new_path, key)
+                        "url": self.s3utils.file_upload(original_path, key)
                     })
         
         self.job_time_completed = datetime.datetime.now()
@@ -203,6 +213,12 @@ class BaseHandler:
         settings["aws_secret_access_key"] = self.get_value("aws_secret_access_key", os.environ.get("AWS_SECRET_ACCESS_KEY"))
         settings["aws_endpoint_url"] = self.get_value("aws_endpoint_url", os.environ.get("AWS_ENDPOINT_URL"))
         settings["aws_bucket_name"] = self.get_value("aws_bucket_name", os.environ.get("AWS_BUCKET_NAME"))
+
+        print(f'AWS_ACCESS_KEY_ID:  {settings["aws_access_key_id"]}')
+        print(f'AWS_SECRET_ACCESS_KEY:  {settings["aws_secret_access_key"]}')
+        print(f'AWS_ENDPOINT_URL:  {settings["aws_endpoint_url"]}')
+        print(f'AWS_BUCKET_NAME:  {settings["aws_bucket_name"]}')
+
         settings["connect_timeout"] = 5
         settings["connect_attempts"] = 1
         return settings

@@ -30,16 +30,21 @@ class s3utils:
 
     def file_upload(self, filepath, key):
         client = self.get_client()
+        print(f"Client: {client}")
         try:
+            print(f"Uploading {filepath} to {self.aws_bucket_name}/{key}")
             client.upload_file(filepath, self.aws_bucket_name, key)
-            
+
+            print(f"Antes del presigned_url")
+
             presigned_url = client.generate_presigned_url(
             'get_object',
             Params={
                 'Bucket': f'{self.aws_bucket_name}',
                 'Key': f'{key}'
             }, ExpiresIn=604800)
-        except:
-          return ""
+        except Exception as e:
+            print(f"Error: {e}")
+            return "Error al subir el archivo a s3"
     
         return presigned_url
