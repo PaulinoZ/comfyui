@@ -19,13 +19,15 @@ class s3utils:
         self.session = boto3.session.Session(
             aws_access_key_id = self.aws_access_key_id,
             aws_secret_access_key = self.aws_secret_access_key,
+            region_name = "eu-west-3"
         )
 
     def get_client(self):
         return self.session.client(
             service_name="s3",
             endpoint_url=self.aws_endpoint_url,
-            config=self.config
+            config=self.config,
+            region_name="eu-west-3"
         )
 
     def file_upload(self, filepath, key):

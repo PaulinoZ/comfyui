@@ -1,4 +1,6 @@
 from handlers.basehandler import BaseHandler
+import random
+import os
 
 """
 Handler classes are generally bound to a specific workflow file.
@@ -20,7 +22,23 @@ class RawWorkflow(BaseHandler):
         
 
     def apply_modifiers(self):
+        print(f'INPUT DIR: {os.listdir("/opt/ComfyUI/input/")}')
+
+        print(f'PROMPT ANTES: {self.prompt}')
         self.prompt = self.replace_urls(self.prompt)
+        print(f'PROMPT INTERMEDIO: {self.prompt}')
+        self.prompt["prompt"]["27"]["inputs"]["image"] = self.prompt["prompt"]["69"]["inputs"]["url"]
+
+        self.prompt["prompt"]["69"] = ""
+        print(f'PROMPT DESPUES: {self.prompt}')
+
+        print(f'INPUT DIR: {os.listdir("/opt/ComfyUI/input/")}')
+
+        self.prompt["prompt"]["3"]["inputs"]["seed"] = self.get_value(
+            "seed",
+            random.randint(0,2**32))
+
+        print(f'PROMPT FINAL: {self.prompt}')
 
         
 """
