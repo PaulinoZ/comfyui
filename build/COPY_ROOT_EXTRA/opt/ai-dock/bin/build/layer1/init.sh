@@ -9,6 +9,7 @@ PYTHON_PACKAGES=(
 
 NODES=(
     "https://github.com/jitcoder/lora-info.git"
+    "https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite"
     "https://github.com/ltdrdata/ComfyUI-Manager"
 )
 

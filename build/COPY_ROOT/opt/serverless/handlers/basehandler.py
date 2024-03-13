@@ -42,7 +42,6 @@ class BaseHandler:
                 self.prompt = {"prompt": json.load(f)}
         else:
             self.prompt = {"prompt": self.payload["workflow_json"]}
-            print(f'CUSTOM Prompt:  {self.prompt}')
           
     def get_value(self, key, default = None):
         if key not in self.payload and default == None:
@@ -147,12 +146,10 @@ class BaseHandler:
     def get_result(self, job_id):
         result = requests.get(self.ENDPOINT_HISTORY).json()[self.comfyui_job_id]
 
-        print(f'Endpoing history:  {self.ENDPOINT_HISTORY}')
+        print(f'RESULTADO: {result}')
 
         prompt = result["prompt"]
         outputs = result["outputs"]
-
-        print(f'Ouputs:  {outputs}')
 
         self.result = {
             "images": [],
@@ -160,8 +157,11 @@ class BaseHandler:
         }
         
         custom_output_dir = f"{self.OUTPUT_DIR}{self.request_id}"
-        print(f'Custom output dir:  {custom_output_dir}')
         os.makedirs(custom_output_dir, exist_ok = True)
+
+        print(f'RESULTADO OUTPUTS: {outputs}')
+        print(f'ComfyUI directory:  {os.listdir("/opt/ComfyUI/output/")}')
+
         for item in outputs:
             if "images" in outputs[item]:
                 for image in outputs[item]["images"]:
@@ -170,30 +170,28 @@ class BaseHandler:
                     #original_path = f"{self.OUTPUT_DIR}{image['subfolder']}/{image['filename']}" # OLD
                     original_path = f"{self.OUTPUT_DIR}{image['subfolder']}{image['filename']}" # OWN
 
-                    print(f'Current path:  {os.getcwd()}')
-
-                    print(f'Output dir:  {os.listdir(self.OUTPUT_DIR)}')
-
-                    aux = f'{os.environ.get('WORKSPACE')}ComfyUI/'
+                    aux = f'{os.environ.get("WORKSPACE")}ComfyUI/'
                     print(f'Output dir sin output:  {os.listdir(aux)}')
-                    
 
-                    print(f'Original path:  {original_path}')
+                    print(f'opt directory:  {os.listdir("/opt")}')
+
+                    print(f'ComfyUI directory:  {os.listdir("/opt/ComfyUI/output/")}')
+                    
                     new_path = f"{custom_output_dir}/{image['filename']}"
-                    print(f'New path:  {new_path}')
                     # Handle duplicated request where output file is not re-generated
                     # if os.path.islink(original_path):
                     #     shutil.copyfile(os.path.realpath(original_path), new_path)
                     # else:
                     #     os.rename(original_path, new_path)
                     #     os.symlink(new_path, original_path)
-
-                    key = f"{self.request_id}/{image['filename']}"
+                    own_path = f'/opt/ComfyUI/output/{image["filename"]}'
+                    # key = f"{self.request_id}/{image['filename']}"
+                    key = f"{image['filename']}"
                     self.result["images"].append({
-                        "local_path": original_path,
+                        "local_path": own_path,
                         #"base64": self.image_to_base64(path),
                         # make this work first, then threads
-                        "url": self.s3utils.file_upload(original_path, key)
+                        "url": self.s3utils.file_upload(own_path, key)
                     })
         
         self.job_time_completed = datetime.datetime.now()

@@ -21,30 +21,59 @@ class Network:
         return hashlib.md5((f'{url}').encode()).hexdigest()
     
     # todo - threads 
+    # @staticmethod
+    # def download_file(url, target_dir, request_id):
+    #     try:
+    #         file_name_hash = Network.get_url_hash(url)
+    #         os.makedirs(target_dir, exist_ok=True)
+    #         response = requests.get(url, timeout=5)
+    #         if response.status_code > 399:
+    #             raise requests.RequestException(f"Unable to download {url}")
+          
+    #         filepath_hash = f"{target_dir}/{file_name_hash}"
+    #         # ignore above
+    #         with open(filepath_hash, mode="wb") as file:
+    #             file.write(response.content)
+           
+    #         file_extension = Filesystem.get_file_extension(filepath_hash)     
+    #         filepath = f"{filepath_hash}{file_extension}"
+    #         os.replace(filepath_hash, filepath)
+            
+    #     except:
+    #         raise
+
+    #     print(f"Downloaded {url} to {filepath}")
+    #     return filepath
+    
     @staticmethod
     def download_file(url, target_dir, request_id):
         try:
+            print(f'URL BEFORE DOWNLOAD: {url}')
+            
+            target_dir = "/opt/ComfyUI/input"
             file_name_hash = Network.get_url_hash(url)
             os.makedirs(target_dir, exist_ok=True)
             response = requests.get(url, timeout=5)
             if response.status_code > 399:
                 raise requests.RequestException(f"Unable to download {url}")
-          
-            filepath_hash = f"{target_dir}/{file_name_hash}"
-            # ignore above
-            with open(filepath_hash, mode="wb") as file:
-                file.write(response.content)
-           
-            file_extension = Filesystem.get_file_extension(filepath_hash)     
-            filepath = f"{filepath_hash}{file_extension}"
-            os.replace(filepath_hash, filepath)
             
-        except:
-            raise
+            # Obtener la extensión del archivo desde la URL
+            parsed_url = urlparse(url)
+            file_extension = os.path.splitext(parsed_url.path)[1]
+            
+            # filepath_hash = f"{target_dir}/{file_name_hash}"
+            filepath = f"{target_dir}/{file_name_hash}{file_extension}"
+            with open(filepath, mode="wb") as file:
+                file.write(response.content)
+            
+            # os.replace(filepath_hash, filepath)
 
+        except Exception as e:
+            raise Exception(f"Error downloading file: {str(e)}") from e
+        
         print(f"Downloaded {url} to {filepath}")
         return filepath
-    
+
     @staticmethod
     def invoke_webhook(url, data):
         try:
