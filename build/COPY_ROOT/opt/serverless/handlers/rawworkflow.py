@@ -29,7 +29,8 @@ class RawWorkflow(BaseHandler):
         print(f'PROMPT INTERMEDIO: {self.prompt}')
         self.prompt["prompt"]["27"]["inputs"]["image"] = self.prompt["prompt"]["69"]["inputs"]["url"]
 
-        self.prompt["prompt"]["69"] = ""
+        self.prompt["prompt"].pop("69")
+
         print(f'PROMPT DESPUES: {self.prompt}')
 
         print(f'INPUT DIR: {os.listdir("/opt/ComfyUI/input/")}')
