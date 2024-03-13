@@ -163,36 +163,32 @@ class BaseHandler:
         print(f'ComfyUI directory:  {os.listdir("/opt/ComfyUI/output/")}')
 
         for item in outputs:
-            if "images" in outputs[item]:
-                for image in outputs[item]["images"]:
-                    if "type" in image and image["type"] == "temp":
-                        continue
-                    #original_path = f"{self.OUTPUT_DIR}{image['subfolder']}/{image['filename']}" # OLD
-                    original_path = f"{self.OUTPUT_DIR}{image['subfolder']}{image['filename']}" # OWN
+            for media_type in ['images', 'gifs']:  # Added 'gifs' to handle both images and gifs
+                if media_type in outputs[item]:
+                    for media in outputs[item][media_type]:
+                        original_path = f"{self.OUTPUT_DIR}{media['subfolder']}{media['filename']}"
 
-                    aux = f'{os.environ.get("WORKSPACE")}ComfyUI/'
-                    print(f'Output dir sin output:  {os.listdir(aux)}')
+                        aux = f'{os.environ.get("WORKSPACE")}ComfyUI/'
+                        print(f'Output dir sin output:  {os.listdir(aux)}')
 
-                    print(f'opt directory:  {os.listdir("/opt")}')
+                        print(f'opt directory:  {os.listdir("/opt")}')
 
-                    print(f'ComfyUI directory:  {os.listdir("/opt/ComfyUI/output/")}')
-                    
-                    new_path = f"{custom_output_dir}/{image['filename']}"
-                    # Handle duplicated request where output file is not re-generated
-                    # if os.path.islink(original_path):
-                    #     shutil.copyfile(os.path.realpath(original_path), new_path)
-                    # else:
-                    #     os.rename(original_path, new_path)
-                    #     os.symlink(new_path, original_path)
-                    own_path = f'/opt/ComfyUI/output/{image["filename"]}'
-                    # key = f"{self.request_id}/{image['filename']}"
-                    key = f"{image['filename']}"
-                    self.result["images"].append({
-                        "local_path": own_path,
-                        #"base64": self.image_to_base64(path),
-                        # make this work first, then threads
-                        "url": self.s3utils.file_upload(own_path, key)
-                    })
+                        print(f'ComfyUI directory:  {os.listdir("/opt/ComfyUI/output/")}')
+                        
+                        new_path = f"{custom_output_dir}/{media['filename']}"
+                        own_path = f'/opt/ComfyUI/output/{media["filename"]}'
+                        key = f"{media['filename']}"
+                        media_entry = {
+                            "local_path": own_path,
+                            "url": self.s3utils.file_upload(own_path, key)
+                        }
+                        # Determine the type of media to append to the correct list in the result
+                        if media_type == 'images':
+                            self.result["images"].append(media_entry)
+                        elif media_type == 'gifs':
+                            if "gifs" not in self.result:
+                                self.result["gifs"] = []
+                            self.result["gifs"].append(media_entry)
         
         self.job_time_completed = datetime.datetime.now()
         self.result["timings"] = {
