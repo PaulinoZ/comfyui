@@ -177,7 +177,11 @@ class BaseHandler:
                         
                         new_path = f"{custom_output_dir}/{media['filename']}"
                         own_path = f'/opt/ComfyUI/output/{media["filename"]}'
-                        key = f"{media['filename']}"
+                        if self.story_id and self.scene_idx:
+                            key = f"{self.story_id}/{self.scene_idx}/{media['filename']}"
+                        else:
+                            key = f"{media['filename']}"
+
                         media_entry = {
                             "local_path": own_path,
                             "url": self.s3utils.file_upload(own_path, key)

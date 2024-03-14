@@ -18,7 +18,13 @@ class RawWorkflow(BaseHandler):
     
     def __init__(self, payload):
         super().__init__(payload, self.WORKFLOW_JSON)
+        # Store the new keys in the instance
+        self.story_id = payload.get('id', False)
+        self.scene_idx = payload.get('idx', False)
         self.apply_modifiers()
+        # Example usage of the new keys
+        print(f'Story ID: {self.story_id}, Scene Index: {self.scene_idx}')
+        
         
 
     def apply_modifiers(self):
